@@ -1,9 +1,11 @@
 // lib/voiceassist/voice_page.dart
 import 'dart:async';
 import 'package:assisti_fy/notes/components/drawer.dart';
+import 'package:assisti_fy/voiceassist/controllers/post_controller.dart';
 import 'package:assisti_fy/voiceassist/database/message_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
+import 'package:get/get.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:provider/provider.dart';
@@ -13,9 +15,11 @@ class VoicePage extends StatefulWidget {
 
   @override
   State<VoicePage> createState() => _VoicePageState();
+  
 }
 
 class _VoicePageState extends State<VoicePage> {
+  final PostController controller = Get.find<PostController>();
   final SpeechToText speechToText = SpeechToText();
   bool speechEnabled = false;
   String lastWords = '';
@@ -170,133 +174,136 @@ class _VoicePageState extends State<VoicePage> {
         title: const Text('Assistify'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(height: 30),
-            // Virtual Assistant Image
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  height: 120,
-                  width: 120,
-                  margin: const EdgeInsets.only(top: 4),
-                  decoration: const BoxDecoration(
-                    color: Colors.blueAccent,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                Container(
-                  height: 123,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: AssetImage(
-                        'assets/images/virtual.png',
-                      ),
-                      fit: BoxFit.cover,
+      body: Obx(()=>
+        SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(height: 30),
+              // Virtual Assistant Image
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    height: 120,
+                    width: 120,
+                    margin: const EdgeInsets.only(top: 4),
+                    decoration: const BoxDecoration(
+                      color: Colors.blueAccent,
+                      shape: BoxShape.circle,
                     ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 30),
-            // Conversation Display using Consumer<MessageDatabase>
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Consumer<MessageDatabase>(
-                builder: (context, messageDb, child) {
-                  return ListView.builder(
-                    controller: _scrollController, // Attach the ScrollController
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: messageDb.currentMessages.length,
-                    itemBuilder: (context, index) {
-                      final message = messageDb.currentMessages[index];
-                      return Padding(
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 5.0),
-                        child: ChatBubble(
-                          clipper: message.isUser
-                              ? ChatBubbleClipper1(
-                                  type: BubbleType.sendBubble)
-                              : ChatBubbleClipper1(
-                                  type: BubbleType.receiverBubble),
-                          alignment: message.isUser
-                              ? Alignment.topRight
-                              : Alignment.topLeft,
-                          margin: EdgeInsets.only(top: 10),
-                          backGroundColor: message.isUser
-                              ? Colors.blueAccent
-                              : Colors.grey[200],
-                          child: Container(
-                            constraints: BoxConstraints(maxWidth: 250),
-                            child: Text(
-                              message.text,
-                              style: TextStyle(
-                                color: message.isUser
-                                    ? Colors.white
-                                    : Colors.black,
+                  Container(
+                    height: 123,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: AssetImage(
+                          'assets/images/virtual.png',
+                        ),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 30),
+              // Conversation Display using Consumer<MessageDatabase>
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Consumer<MessageDatabase>(
+                  builder: (context, messageDb, child) {
+                    return ListView.builder(
+                      controller: _scrollController, // Attach the ScrollController
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: messageDb.currentMessages.length,
+                      itemBuilder: (context, index) {
+                        final message = messageDb.currentMessages[index];
+                        return Padding(
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 5.0),
+                          child: ChatBubble(
+                            clipper: message.isUser
+                                ? ChatBubbleClipper1(
+                                    type: BubbleType.sendBubble)
+                                : ChatBubbleClipper1(
+                                    type: BubbleType.receiverBubble),
+                            alignment: message.isUser
+                                ? Alignment.topRight
+                                : Alignment.topLeft,
+                            margin: EdgeInsets.only(top: 10),
+                            backGroundColor: message.isUser
+                                ? Colors.blueAccent
+                                : Colors.grey[200],
+                            child: Container(
+                              constraints: BoxConstraints(maxWidth: 250),
+                              child: Text(
+                                message.text,
+                                style: TextStyle(
+                                  color: message.isUser
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                },
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-            SizedBox(height: 20),
-            // Microphone Status and Loading Indicator
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: speechToText.isListening
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(width: 10),
-                        Text(
-                          'Listening... 🎤',
-                          style: TextStyle(
-                              fontSize: 16, color: Colors.grey[700]),
-                        ),
-                      ],
-                    )
-                  : Text(
-                      'Tap the microphone to start listening',
-                      style: TextStyle(
-                          fontSize: 16, color: Colors.grey[700]),
-                      textAlign: TextAlign.center,
-                    ),
-            ),
-            SizedBox(height: 10),
-            // Processing Indicator
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: isLoading
-                  ? Column(
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 10),
-                        Text(
-                          'Processing...',
-                          style: TextStyle(
-                              fontSize: 16, color: Colors.grey[700]),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    )
-                  : Container(),
-            ),
-            SizedBox(height: 30),
-          ],
+              SizedBox(height: 20),
+              // Microphone Status and Loading Indicator
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: speechToText.isListening
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(width: 10),
+                          Text(
+                            'Listening... 🎤',
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.grey[700]),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        'Tap the microphone to start listening',
+                        style: TextStyle(
+                            fontSize: 16, color: Colors.grey[700]),
+                        textAlign: TextAlign.center,
+                      ),
+              ),
+              SizedBox(height: 10),
+              // Processing Indicator
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: isLoading
+                    ? Column(
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 10),
+                          Text(
+                            'Processing...',
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.grey[700]),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      )
+                    : Container(),
+              ),
+              SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          controller.fetchPosts();
           if (!speechEnabled) {
             debugPrint('Speech recognition not enabled.');
             _showDialog(
