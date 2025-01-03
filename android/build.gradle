@@ -1,0 +1,35 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.buildDir = "../build"
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+subprojects { subproject ->
+    if (subproject.name.contains("speech_to_text")) {
+        subproject.plugins.withId("com.android.library") {
+            subproject.android {
+                namespace = "com.example.speech_to_text"
+            }
+        }
+    }
+    if (subproject.name.contains("isar_flutter_libs")) {
+        subproject.plugins.withId("com.android.library") {
+            subproject.android {
+                namespace = "dev.isar.isar_flutter_libs"
+            }
+        }
+    }
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
